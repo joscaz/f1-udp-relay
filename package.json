@@ -1,0 +1,24 @@
+{
+  "name": "formula-delta-relay",
+  "version": "1.0.0",
+  "description": "EA F1 25 UDP to WebSocket relay for Formula Delta",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "node src/test-parser.js",
+    "local-server": "node src/local-server.js"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "license": "ISC",
+  "packageManager": "pnpm@10.17.1",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.13"
+  }
+}
