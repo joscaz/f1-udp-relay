@@ -1,5 +1,36 @@
 const { HEADER_SIZE } = require('./header');
 
+/**
+ * CarStatusData: 55 bytes per car
+ * 
+ * Offset | Type   | Field
+ * 0      | uint8  | tractionControl
+ * 1      | uint8  | antiLockBrakes
+ * 2      | uint8  | fuelMix
+ * 3      | uint8  | frontBrakeBias
+ * 4      | uint8  | pitLimiterStatus
+ * 5      | float  | fuelInTank
+ * 9      | float  | fuelCapacity
+ * 13     | float  | fuelRemainingLaps
+ * 17     | uint16 | maxRPM
+ * 19     | uint16 | idleRPM
+ * 21     | uint8  | maxGears
+ * 22     | uint8  | drsAllowed
+ * 23     | uint16 | drsActivationDistance
+ * 25     | uint8  | actualTyreCompound
+ * 26     | uint8  | visualTyreCompound
+ * 27     | uint8  | tyresAgeLaps
+ * 28     | int8   | vehicleFiaFlags
+ * 29     | float  | enginePowerICE
+ * 33     | float  | enginePowerMGUK
+ * 37     | float  | ersStoreEnergy
+ * 41     | uint8  | ersDeployMode
+ * 42     | float  | ersHarvestedThisLapMGUK
+ * 46     | float  | ersHarvestedThisLapMGUH
+ * 50     | float  | ersDeployedThisLap
+ * 54     | uint8  | networkPaused
+ */
+
 const CAR_STATUS_SIZE = 55;
 
 const TYRE_COMPOUND_MAP = {
@@ -22,9 +53,9 @@ function parseCarStatus(buf) {
     const offset = HEADER_SIZE + (i * CAR_STATUS_SIZE);
     if (offset + CAR_STATUS_SIZE > buf.length) break;
 
-    const actualTyreCompoundId = buf.readUInt8(offset + 17);
-    const visualTyreCompoundId = buf.readUInt8(offset + 18);
-    const ersDeployModeId      = buf.readUInt8(offset + 28);
+    const actualTyreCompoundId = buf.readUInt8(offset + 25);
+    const visualTyreCompoundId = buf.readUInt8(offset + 26);
+    const ersDeployModeId      = buf.readUInt8(offset + 41);
 
     cars.push({
       carIndex: i,
@@ -38,16 +69,15 @@ function parseCarStatus(buf) {
       fuelRemainingLaps:  Math.round(buf.readFloatLE(offset + 13) * 10) / 10,
       maxRPM:             buf.readUInt16LE(offset + 17),
       idleRPM:            buf.readUInt16LE(offset + 19),
-      maxGears:           buf.readUInt8(offset + 21),
       drsAllowed:         buf.readUInt8(offset + 22) === 1,
       drsActivationDistance: buf.readUInt16LE(offset + 23),
       actualTyreCompound: TYRE_COMPOUND_MAP[actualTyreCompoundId] || `ID${actualTyreCompoundId}`,
       visualTyreCompound: TYRE_VISUAL_MAP[visualTyreCompoundId] || `ID${visualTyreCompoundId}`,
-      tyresAgeLaps:       buf.readUInt8(offset + 25),
-      vehicleFiaFlags:    buf.readInt8(offset + 26),
-      ersStoreEnergy:     Math.round(buf.readFloatLE(offset + 31)),
+      tyresAgeLaps:       buf.readUInt8(offset + 27),
+      vehicleFiaFlags:    buf.readInt8(offset + 28),
+      ersStoreEnergy:     Math.round(buf.readFloatLE(offset + 37)),
       ersDeployMode:      ERS_DEPLOY_MODE[ersDeployModeId] || 'Unknown',
-      ersDeployedThisLap: Math.round(buf.readFloatLE(offset + 40)),
+      ersDeployedThisLap: Math.round(buf.readFloatLE(offset + 50)),
       networkPaused:      buf.readUInt8(offset + 54) === 1,
     });
   }

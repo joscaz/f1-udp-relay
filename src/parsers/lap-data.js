@@ -1,6 +1,6 @@
 const { HEADER_SIZE } = require('./header');
 
-const LAP_DATA_SIZE = 60;
+const LAP_DATA_SIZE = 57;
 
 function parseLapData(buf) {
   const cars = [];

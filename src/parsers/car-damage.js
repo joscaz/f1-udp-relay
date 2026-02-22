@@ -1,6 +1,29 @@
 const { HEADER_SIZE } = require('./header');
 
-const CAR_DAMAGE_SIZE = 62;
+/**
+ * CarDamageData: 46 bytes per car
+ *
+ * Offset | Type      | Field
+ * 0      | float[4]  | tyresWear (RL, RR, FL, FR) — 16 bytes
+ * 16     | uint8[4]  | tyresDamage — 4 bytes
+ * 20     | uint8[4]  | brakesDamage — 4 bytes
+ * 24     | uint8[4]  | tyreBlisters — 4 bytes
+ * 28     | uint8     | frontLeftWingDamage
+ * 29     | uint8     | frontRightWingDamage
+ * 30     | uint8     | rearWingDamage
+ * 31     | uint8     | floorDamage
+ * 32     | uint8     | diffuserDamage
+ * 33     | uint8     | sidepodDamage
+ * 34     | uint8     | drsFault
+ * 35     | uint8     | ersFault
+ * 36     | uint8     | gearBoxDamage
+ * 37     | uint8     | engineDamage
+ * 38-43  | uint8[6]  | engine wear (MGUH, ES, CE, ICE, MGUK, TC)
+ * 44     | uint8     | engineBlown
+ * 45     | uint8     | engineSeized
+ */
+
+const CAR_DAMAGE_SIZE = 46;
 
 function parseCarDamage(buf) {
   const cars = [];
@@ -53,8 +76,8 @@ function parseCarDamage(buf) {
       ersFault:             buf.readUInt8(offset + 35) === 1,
       gearBoxDamage:        buf.readUInt8(offset + 36),
       engineDamage:         buf.readUInt8(offset + 37),
-      engineBlown:          buf.readUInt8(offset + 56) === 1,
-      engineSeized:         buf.readUInt8(offset + 57) === 1,
+      engineBlown:          buf.readUInt8(offset + 44) === 1,
+      engineSeized:         buf.readUInt8(offset + 45) === 1,
     });
   }
 

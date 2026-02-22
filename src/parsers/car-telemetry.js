@@ -18,20 +18,20 @@ function parseCarTelemetry(buf) {
     const surfaceType = [];
 
     for (let w = 0; w < 4; w++) {
-      brakesTemp.push(buf.readUInt16LE(offset + 26 + (w * 2)));
+      brakesTemp.push(buf.readUInt16LE(offset + 22 + (w * 2)));
     }
     for (let w = 0; w < 4; w++) {
-      tyreSurfaceTemp.push(buf.readUInt8(offset + 34 + w));
+      tyreSurfaceTemp.push(buf.readUInt8(offset + 30 + w));
     }
     for (let w = 0; w < 4; w++) {
-      tyreInnerTemp.push(buf.readUInt8(offset + 38 + w));
+      tyreInnerTemp.push(buf.readUInt8(offset + 34 + w));
     }
-    const engineTemperature = buf.readUInt16LE(offset + 42);
+    const engineTemperature = buf.readUInt16LE(offset + 38);
     for (let w = 0; w < 4; w++) {
-      tyrePressure.push(Math.round(buf.readFloatLE(offset + 44 + (w * 4)) * 10) / 10);
+      tyrePressure.push(Math.round(buf.readFloatLE(offset + 40 + (w * 4)) * 10) / 10);
     }
     for (let w = 0; w < 4; w++) {
-      surfaceType.push(buf.readUInt8(offset + 60 + w));
+      surfaceType.push(buf.readUInt8(offset + 56 + w));
     }
 
     cars.push({

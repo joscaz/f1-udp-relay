@@ -71,6 +71,12 @@ function parseEvent(buf) {
       };
       break;
 
+    case 'BUTN':
+      details = {
+        buttonStatus: buf.readUInt32LE(detailsOffset),
+      };
+      break;
+
     case 'SSTA':
     case 'SEND':
     case 'DRSE':

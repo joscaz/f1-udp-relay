@@ -1,6 +1,6 @@
 const { HEADER_SIZE } = require('./header');
 
-const PARTICIPANT_SIZE = 56;
+const PARTICIPANT_SIZE = 57;
 
 function parseParticipants(buf) {
   const numActiveCars = buf.readUInt8(HEADER_SIZE);
