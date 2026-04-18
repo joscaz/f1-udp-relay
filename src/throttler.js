@@ -1,25 +1,25 @@
 /**
- * Throttler: controla que ciertos tipos de mensajes no se envíen
- * más frecuentemente de lo necesario.
- * 
- * Frecuencias definidas:
- * - session:       máximo 2/seg  (el juego ya lo manda a 2/seg)
- * - lap_data:      máximo 10/seg (reducimos de 60Hz a 10Hz)
- * - car_telemetry: máximo 10/seg
- * - car_status:    máximo 10/seg
- * - car_damage:    máximo 2/seg  (cambia lento)
- * - participants:  máximo 1/seg  (el juego lo manda cada 5 seg)
- * - event:         siempre       (son instantáneos, nunca throttle)
- * - lap_positions: máximo 1/seg
+ * Throttler: caps how often each message type can be forwarded to the
+ * WebSocket server. Values are minimum intervals (ms) between sends.
+ *
+ * Defaults:
+ *   - session       2 Hz  (game emits at 2 Hz already)
+ *   - lap_data      10 Hz (downsampled from up to 60 Hz)
+ *   - car_telemetry 10 Hz
+ *   - car_status    10 Hz
+ *   - car_damage    2 Hz  (changes slowly)
+ *   - participants  0.2 Hz (game emits every ~5 s)
+ *   - event         unthrottled (instantaneous signals, never drop)
+ *   - lap_positions 1 Hz
  */
 
 const INTERVALS = {
-  session:       500,
-  lap_data:      100,
+  session: 500,
+  lap_data: 100,
   car_telemetry: 100,
-  car_status:    100,
-  car_damage:    500,
-  participants:  5000,
+  car_status: 100,
+  car_damage: 500,
+  participants: 5000,
   lap_positions: 1000,
 };
 
@@ -47,4 +47,9 @@ class Throttler {
   }
 }
 
-module.exports = new Throttler();
+const singleton = new Throttler();
+singleton.INTERVALS = INTERVALS;
+
+module.exports = singleton;
+module.exports.Throttler = Throttler;
+module.exports.INTERVALS = INTERVALS;

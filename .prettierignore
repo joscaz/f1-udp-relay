@@ -1,0 +1,8 @@
+node_modules
+dist
+coverage
+.pnpm-store
+pnpm-lock.yaml
+
+# Historical design doc kept as-is in Spanish.
+plan-formula-delta-relay.md

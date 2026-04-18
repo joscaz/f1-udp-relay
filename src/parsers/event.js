@@ -23,30 +23,30 @@ function parseEvent(buf) {
 
     case 'PENA':
       details = {
-        penaltyType:      buf.readUInt8(detailsOffset),
+        penaltyType: buf.readUInt8(detailsOffset),
         infringementType: buf.readUInt8(detailsOffset + 1),
-        vehicleIdx:       buf.readUInt8(detailsOffset + 2),
-        otherVehicleIdx:  buf.readUInt8(detailsOffset + 3),
-        time:             buf.readUInt8(detailsOffset + 4),
-        lapNum:           buf.readUInt8(detailsOffset + 5),
-        placesGained:     buf.readUInt8(detailsOffset + 6),
+        vehicleIdx: buf.readUInt8(detailsOffset + 2),
+        otherVehicleIdx: buf.readUInt8(detailsOffset + 3),
+        time: buf.readUInt8(detailsOffset + 4),
+        lapNum: buf.readUInt8(detailsOffset + 5),
+        placesGained: buf.readUInt8(detailsOffset + 6),
       };
       break;
 
     case 'SPTP':
       details = {
-        vehicleIdx:               buf.readUInt8(detailsOffset),
-        speed:                    buf.readFloatLE(detailsOffset + 1),
-        isOverallFastest:         buf.readUInt8(detailsOffset + 5) === 1,
-        isDriverFastest:          buf.readUInt8(detailsOffset + 6) === 1,
+        vehicleIdx: buf.readUInt8(detailsOffset),
+        speed: buf.readFloatLE(detailsOffset + 1),
+        isOverallFastest: buf.readUInt8(detailsOffset + 5) === 1,
+        isDriverFastest: buf.readUInt8(detailsOffset + 6) === 1,
         fastestVehicleIdxInSession: buf.readUInt8(detailsOffset + 7),
-        fastestSpeedInSession:    buf.readFloatLE(detailsOffset + 8),
+        fastestSpeedInSession: buf.readFloatLE(detailsOffset + 8),
       };
       break;
 
     case 'OVTK':
       details = {
-        overtakingVehicleIdx:     buf.readUInt8(detailsOffset),
+        overtakingVehicleIdx: buf.readUInt8(detailsOffset),
         beingOvertakenVehicleIdx: buf.readUInt8(detailsOffset + 1),
       };
       break;
@@ -54,7 +54,7 @@ function parseEvent(buf) {
     case 'SCAR':
       details = {
         safetyCarType: buf.readUInt8(detailsOffset),
-        eventType:     buf.readUInt8(detailsOffset + 1),
+        eventType: buf.readUInt8(detailsOffset + 1),
       };
       break;
 

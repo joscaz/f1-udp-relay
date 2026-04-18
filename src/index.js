@@ -1,32 +1,47 @@
-require('dotenv').config();
-const wsClient   = require('./ws-client');
-const udpListener = require('./udp-listener');
+#!/usr/bin/env node
+const { loadConfig } = require('./config');
+const { createWsClient } = require('./ws-client');
+const { startUdpListener } = require('./udp-listener');
+
+const config = loadConfig();
 
 console.log('');
-console.log('╔════════════════════════════════════════╗');
-console.log('║    Formula Delta Relay v1.0.0          ║');
-console.log('║    EA F1 25 → WebSocket Bridge         ║');
-console.log('╚════════════════════════════════════════╝');
+console.log('========================================');
+console.log(`  f1-udp-relay v${config.version}`);
+console.log('  EA F1 25  ->  WebSocket bridge');
+console.log('========================================');
 console.log('');
 
-const required = ['SERVER_URL', 'RELAY_TOKEN'];
-for (const key of required) {
-  if (!process.env[key]) {
-    console.error(`❌ Falta la variable de entorno: ${key}`);
-    console.error('   Copia .env.example a .env y configura los valores');
-    process.exit(1);
-  }
+if (!config.token) {
+  console.log('[config] No token provided. Connecting without the "x-relay-token" header.');
+  console.log('         Pass --token <value> or set RELAY_TOKEN if your server requires auth.');
 }
+
+const wsClient = createWsClient({
+  url: config.serverUrl,
+  token: config.token,
+  relayVersion: config.version,
+});
 
 wsClient.connect();
 
-udpListener.start();
+startUdpListener({
+  port: config.udpPort,
+  verbose: config.verbose,
+  silent: config.silent,
+  wsClient,
+});
 
 process.on('SIGINT', () => {
-  console.log('\n[Relay] Apagando...');
+  console.log('\n[relay] Shutting down...');
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('\n[relay] Shutting down...');
   process.exit(0);
 });
 
 process.on('uncaughtException', (err) => {
-  console.error('[Relay] Error no manejado:', err.message);
+  console.error('[relay] Uncaught exception:', err.message);
 });

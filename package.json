@@ -1,24 +1,71 @@
 {
-  "name": "formula-delta-relay",
-  "version": "1.0.0",
-  "description": "EA F1 25 UDP to WebSocket relay for Formula Delta",
+  "name": "f1-udp-relay",
+  "version": "0.1.0",
+  "description": "Parse EA SPORTS F1 25 UDP telemetry and relay it to any WebSocket backend as JSON.",
   "main": "src/index.js",
+  "bin": {
+    "f1-udp-relay": "src/index.js"
+  },
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "node src/test-parser.js",
-    "local-server": "node src/local-server.js"
+    "receiver": "node examples/receiver.js",
+    "debug:dump": "node tools/debug-dump.js",
+    "test": "node --test --test-reporter=spec \"src/**/*.test.js\"",
+    "test:watch": "node --test --watch --test-reporter=spec \"src/**/*.test.js\"",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build:win": "pkg . --targets node20-win-x64 --output dist/f1-udp-relay-win-x64.exe"
   },
+  "keywords": [
+    "f1",
+    "f1-25",
+    "ea-sports",
+    "formula-1",
+    "telemetry",
+    "udp",
+    "websocket",
+    "relay",
+    "sim-racing",
+    "esports"
+  ],
+  "author": "joscaz <joscazertuche@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joscaz/formula-delta-relay.git"
+  },
+  "bugs": {
+    "url": "https://github.com/joscaz/formula-delta-relay/issues"
+  },
+  "homepage": "https://github.com/joscaz/formula-delta-relay#readme",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
-  "license": "ISC",
   "packageManager": "pnpm@10.17.1",
   "dependencies": {
     "dotenv": "^17.3.1",
     "ws": "^8.19.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.13"
+    "@eslint/js": "^9.12.0",
+    "@yao-pkg/pkg": "^6.8.0",
+    "eslint": "^9.12.0",
+    "globals": "^15.11.0",
+    "nodemon": "^3.1.13",
+    "prettier": "^3.3.3"
+  },
+  "pkg": {
+    "scripts": [
+      "src/**/!(*.test).js"
+    ]
   }
 }

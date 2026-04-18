@@ -1,49 +1,47 @@
-const dgram = require('dgram');
-require('dotenv').config();
+const dgram = require('node:dgram');
 
-const { parseHeader }       = require('./parsers/header');
-const { parseSession }      = require('./parsers/session');
-const { parseLapData }      = require('./parsers/lap-data');
-const { parseEvent }        = require('./parsers/event');
+const { parseHeader, HEADER_SIZE } = require('./parsers/header');
+const { parseSession } = require('./parsers/session');
+const { parseLapData } = require('./parsers/lap-data');
+const { parseEvent } = require('./parsers/event');
 const { parseParticipants } = require('./parsers/participants');
 const { parseCarTelemetry } = require('./parsers/car-telemetry');
-const { parseCarStatus }    = require('./parsers/car-status');
-const { parseCarDamage }    = require('./parsers/car-damage');
-const wsClient              = require('./ws-client');
-const throttler             = require('./throttler');
-
-const UDP_PORT = parseInt(process.env.UDP_PORT || '20777');
+const { parseCarStatus } = require('./parsers/car-status');
+const { parseCarDamage } = require('./parsers/car-damage');
+const throttler = require('./throttler');
 
 const PACKET_MAP = {
-  1:  { parser: parseSession,      type: 'session',       throttle: true },
-  2:  { parser: parseLapData,      type: 'lap_data',      throttle: true },
-  3:  { parser: parseEvent,        type: 'event',         throttle: false },
-  4:  { parser: parseParticipants, type: 'participants',  throttle: true },
-  6:  { parser: parseCarTelemetry, type: 'car_telemetry', throttle: true },
-  7:  { parser: parseCarStatus,    type: 'car_status',    throttle: true },
-  10: { parser: parseCarDamage,    type: 'car_damage',    throttle: true },
+  1: { parser: parseSession, type: 'session', throttle: true },
+  2: { parser: parseLapData, type: 'lap_data', throttle: true },
+  3: { parser: parseEvent, type: 'event', throttle: false },
+  4: { parser: parseParticipants, type: 'participants', throttle: true },
+  6: { parser: parseCarTelemetry, type: 'car_telemetry', throttle: true },
+  7: { parser: parseCarStatus, type: 'car_status', throttle: true },
+  10: { parser: parseCarDamage, type: 'car_damage', throttle: true },
 };
 
-const IGNORED_PACKETS = new Set([0, 5, 8, 9, 12, 13, 14]);
+const IGNORED_PACKETS = new Set([0, 5, 8, 9, 11, 12, 13, 14, 15]);
 
-let packetsReceived = 0;
-let packetsSent = 0;
-let lastSessionUID = null;
+const STATS_INTERVAL_MS = 30000;
 
-function start() {
+function startUdpListener({ port, verbose = false, silent = false, wsClient }) {
   const socket = dgram.createSocket('udp4');
+
+  let packetsReceived = 0;
+  let packetsSent = 0;
+  let lastSessionUID = null;
 
   socket.on('listening', () => {
     const addr = socket.address();
-    console.log(`[UDP] Escuchando en ${addr.address}:${addr.port}`);
-    console.log('[UDP] Esperando datos de EA F1 25...');
+    console.log(`[udp] Listening on ${addr.address}:${addr.port}`);
+    console.log('[udp] Waiting for EA F1 25 telemetry...');
   });
 
   socket.on('message', (buf) => {
     packetsReceived++;
 
     try {
-      if (buf.length < 29) return;
+      if (buf.length < HEADER_SIZE) return;
 
       const header = parseHeader(buf);
 
@@ -53,7 +51,7 @@ function start() {
       if (!packetInfo) return;
 
       if (lastSessionUID && lastSessionUID !== header.sessionUID) {
-        console.log('[UDP] 🔄 Nueva sesión detectada');
+        console.log('[udp] New session detected.');
         wsClient.send('session_changed', { newSessionUID: header.sessionUID });
         throttler.reset();
       }
@@ -64,35 +62,47 @@ function start() {
       const data = packetInfo.parser(buf);
 
       wsClient.send(packetInfo.type, {
-        sessionUID:  header.sessionUID,
+        sessionUID: header.sessionUID,
         sessionTime: header.sessionTime,
         data,
       });
 
       packetsSent++;
-
     } catch (err) {
-      if (process.env.DEBUG) {
-        console.error('[UDP] Error de parseo:', err.message);
+      if (verbose) {
+        console.error('[udp] Parse error:', err.message);
       }
     }
   });
 
   socket.on('error', (err) => {
-    console.error('[UDP] Error del socket:', err.message);
+    console.error('[udp] Socket error:', err.message);
     process.exit(1);
   });
 
-  socket.bind(UDP_PORT);
+  socket.bind(port);
 
-  setInterval(() => {
-    const wsStatus = wsClient.getStatus();
-    console.log(`[Stats] Paquetes recibidos: ${packetsReceived} | Enviados: ${packetsSent} | WS: ${wsStatus.isConnected ? '✅' : '❌'}`);
-    packetsReceived = 0;
-    packetsSent = 0;
-  }, 30000);
+  let statsTimer = null;
+  if (!silent) {
+    statsTimer = setInterval(() => {
+      const wsStatus = wsClient.getStatus();
+      const wsLabel = wsStatus.isConnected ? 'connected' : 'disconnected';
+      console.log(`[stats] received=${packetsReceived} forwarded=${packetsSent} ws=${wsLabel}`);
+      packetsReceived = 0;
+      packetsSent = 0;
+    }, STATS_INTERVAL_MS);
+  }
 
-  return socket;
+  function close() {
+    if (statsTimer) clearInterval(statsTimer);
+    try {
+      socket.close();
+    } catch {
+      // Ignore close errors during shutdown.
+    }
+  }
+
+  return { socket, close };
 }
 
-module.exports = { start };
+module.exports = { startUdpListener };
